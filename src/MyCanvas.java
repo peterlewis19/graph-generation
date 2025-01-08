@@ -5,9 +5,9 @@ import java.util.Scanner;
 
 public class MyCanvas extends JComponent {
 
-    private ArrayList<Node>[] allNeighbours;
+    private ArrayList<ArrayList<Node>> allNeighbours;
 
-    public MyCanvas(ArrayList<Node>[] allNeighbours){
+    public MyCanvas(ArrayList<ArrayList<Node>> allNeighbours){
         this.allNeighbours = allNeighbours;
     }
 

@@ -8,13 +8,10 @@ public class Main {
     public static void main(String[] args) {
 
         ///CONSTANTS
-        int NUM_OF_POINTS = 100;
-        int CLOSEST_N = 4;
-        //TODO:
-        // 1.Generate N random nodes ----- tick
-        // 2.Recognise the n closest nodes ----- tick
+        int NUM_OF_POINTS = 500;
+        int CLOSEST_N = 5;
 
-        ArrayList<Node>[] allNeighbours = new ArrayList[NUM_OF_POINTS];
+        ArrayList<ArrayList<Node>> allNeighbours = new ArrayList<>();
 
         //generates 50 random nodes
         Node[] graph = generatePoints(NUM_OF_POINTS);
@@ -24,8 +21,7 @@ public class Main {
 
         for (int j=0; j < CLOSEST_N; j++) {
             //finds the 5 closest nodes to the current node, and randomly chooses from those to make neighbours
-            for (int k = 0; k < graph.length; k++) {
-                Node current = graph[k];
+            for (Node current : graph) {
                 //sort the other nodes by distance to current node using bubble sort
                 Node[] sortedForCurrentGraph = graph.clone();
 
@@ -44,13 +40,13 @@ public class Main {
                     // add the second closest neighbour if the confirmed neighbours arent connected to it, etc
                     boolean isNeighbour = false;
 
-                    for (Node neighbour: current.getNeighbours()){
-                        if (fiveClosest[j].isNeighbour(neighbour)){
+                    for (Node neighbour : current.getNeighbours()) {
+                        if (fiveClosest[j].isNeighbour(neighbour)) {
                             isNeighbour = true;
                         }
                     }
 
-                    if (!isNeighbour){
+                    if (!isNeighbour) {
                         current.addNeighbour(fiveClosest[j]);
                     }
                 }
@@ -64,22 +60,59 @@ public class Main {
                 nodeAndNeighbours.add(current);
 
 
-                for (Node neighbour: current.getNeighbours()){
-                    System.out.println(neighbour);
-
+                for (Node neighbour : current.getNeighbours()) {
                     nodeAndNeighbours.add(neighbour);
                 }
-
-                allNeighbours[k] = nodeAndNeighbours;
-                //System.out.println();
+                allNeighbours.add(nodeAndNeighbours);
             }
 
-            //frane.drawFrame(allNeighbours);
         }
 
+        //go through allNeighbours, for each node sort by distance to start, then do first 50 of those. this is def way faster!!!!
+        // O(n^2), for each node, iterate through entire list, to intersect test all possibilities
 
+        Node toRemoveFromNode;
+        ArrayList<Node> nodeToRemoveFrom = new ArrayList<>();
 
-        //using allNeighbours, draw the graph
+        ArrayList<Node[]> alreadyDeleted = new ArrayList<>(); //[0] = node1, [1] = node2, [2] = neighbour1, [3] = neighbour2  AND [0,1] = neighbours, [2,3] = nodes FOR COPY
+
+        for (Node node : graph) {
+            for (Node value : graph) {
+                Edge currentEdge = null;
+                Edge otherEdge = null;
+
+                for (Node neighbour : node.getNeighbours()) {
+                    currentEdge = new Edge(new Node[]{node, neighbour});
+
+                    for (Node neighbour2 : value.getNeighbours()) {
+                        otherEdge = new Edge(new Node[]{value, neighbour2});
+
+                        if (currentEdge.isOverlapping(otherEdge)) {
+
+                            System.out.println(currentEdge.isOverlapping(otherEdge));
+                            toRemoveFromNode = otherEdge.getSecondNode();
+
+                            //finds the second node and removes the overlapping neighbour from it
+                            //nodeToRemoveFrom = allNeighbours.get(allNeighbours.indexOf(value.getNeighbours())); ///GOES TO -1 OUT OF BOUNDS HERE
+                            if (!alreadyDeleted.contains(new Node[]{node, neighbour, value, neighbour2})) {
+
+                                for (ArrayList<Node> neighors : allNeighbours) {
+                                    if (neighors.get(0) == value) {
+                                        nodeToRemoveFrom = neighors;
+
+                                        nodeToRemoveFrom.remove(toRemoveFromNode);
+
+                                        alreadyDeleted.add(new Node[]{node, neighbour, value, neighbour2});
+                                        alreadyDeleted.add(new Node[]{value, neighbour2, node, neighbour});
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         NewFrame frame = new NewFrame();
         frame.drawFrame(allNeighbours);
 

@@ -7,7 +7,7 @@ import static java.awt.SystemColor.window;
 // Driver Class
 public class NewFrame {
     // Main Function
-    public void drawFrame(ArrayList<Node>[] allNeighbours) {
+    public void drawFrame(ArrayList<ArrayList<Node>> allNeighbours) {
         // Creating instance of JFrame
         JFrame frame = new JFrame("Random nodes and neighbours");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
