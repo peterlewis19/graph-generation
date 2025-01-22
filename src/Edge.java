@@ -110,10 +110,6 @@ public class Edge{
             return false;
         }
 
-
-
-
-
     }
 
     public Node getFirstNode(){

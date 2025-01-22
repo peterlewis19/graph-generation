@@ -8,69 +8,71 @@ public class Main {
     public static void main(String[] args) {
 
         ///CONSTANTS
-        int NUM_OF_POINTS = 500;
-        int CLOSEST_N = 5;
+        int NUM_OF_POINTS = 100;   //roughly 100:1 ratio has best results
+        int CLOSEST_N = 8; //HAS A CLOSEST_N! impact on runtime about
 
-        ArrayList<ArrayList<Node>> allNeighbours = new ArrayList<>();
-
-        //generates 50 random nodes
+        // TODO:
+        /// -add another generation after, of points with less than e.g 3 neighbours, to fill it out even more
+        /// - this should close the gaps, and leave less islands
+        
+        //generates points and writes them to map.txt
         Node[] graph = generatePoints(NUM_OF_POINTS);
 
+        ArrayList<Node>[] allNeighbours = new ArrayList[NUM_OF_POINTS];
+
+        //generates 50 random nodes
+        //Node[] graph = FileHandler.readFromFile("map.txt");
+
         //for each node recognise the 5 closest neighbours
-        Node[] fiveClosest = new Node[CLOSEST_N];
+        Node[] nClosest = new Node[CLOSEST_N];
 
         for (int j=0; j < CLOSEST_N; j++) {
             //finds the 5 closest nodes to the current node, and randomly chooses from those to make neighbours
             for (Node current : graph) {
-                //sort the other nodes by distance to current node using bubble sort
+                //sort the other nodes by distance to current node using built in method
                 Node[] sortedForCurrentGraph = graph.clone();
 
                 Arrays.sort(sortedForCurrentGraph, Comparator.comparingDouble(current::distanceTo));
 
 
-                //adds the CLOSEST_N closest points to fiveClosest
+                //adds the CLOSEST_N closest points to nClosest
                 for (int i = 1; i < CLOSEST_N + 1; i++) {
-                    fiveClosest[i - 1] = sortedForCurrentGraph[i];
+                    nClosest[i - 1] = sortedForCurrentGraph[i];
                 }
 
                 //adds the closest neighbour
                 if (j == 0) {
-                    current.addNeighbour(fiveClosest[0]);
+                    current.addNeighbour(nClosest[0]);
                 } else {
                     // add the second closest neighbour if the confirmed neighbours arent connected to it, etc
                     boolean isNeighbour = false;
 
                     for (Node neighbour : current.getNeighbours()) {
-                        if (fiveClosest[j].isNeighbour(neighbour)) {
+                        if (nClosest[j].isNeighbour(neighbour)) {
                             isNeighbour = true;
                         }
                     }
 
                     if (!isNeighbour) {
-                        current.addNeighbour(fiveClosest[j]);
+                        current.addNeighbour(nClosest[j]);
                     }
                 }
 
-
-                //System.out.println("CURRENT NODE: " + current);
-                //System.out.println(current.getNeighbours().size() + " NEIGHBOURS: ");
-
-                //arraylist containing Node, neighbour1, neighbour2... etc to add to allNeigbours at the end
-                ArrayList<Node> nodeAndNeighbours = new ArrayList<>();
-                nodeAndNeighbours.add(current);
-
-
-                for (Node neighbour : current.getNeighbours()) {
-                    nodeAndNeighbours.add(neighbour);
-                }
-                allNeighbours.add(nodeAndNeighbours);
             }
 
+        }
+
+        int count=0;
+
+        for (Node node: graph){
+            allNeighbours[count] = node.getNeighbours();
+            count++;
         }
 
         //go through allNeighbours, for each node sort by distance to start, then do first 50 of those. this is def way faster!!!!
         // O(n^2), for each node, iterate through entire list, to intersect test all possibilities
 
+        //THIS IS WILDLY INEFFICIENT IT NEEDS REFACTORING DESPERATELY
         Node toRemoveFromNode;
         ArrayList<Node> nodeToRemoveFrom = new ArrayList<>();
 
@@ -88,13 +90,11 @@ public class Main {
                         otherEdge = new Edge(new Node[]{value, neighbour2});
 
                         if (currentEdge.isOverlapping(otherEdge)) {
-
-                            System.out.println(currentEdge.isOverlapping(otherEdge));
                             toRemoveFromNode = otherEdge.getSecondNode();
 
                             //finds the second node and removes the overlapping neighbour from it
                             //nodeToRemoveFrom = allNeighbours.get(allNeighbours.indexOf(value.getNeighbours())); ///GOES TO -1 OUT OF BOUNDS HERE
-                            if (!alreadyDeleted.contains(new Node[]{node, neighbour, value, neighbour2})) {
+                            if (!alreadyDeleted.contains(new Node[]{node, neighbour, value, neighbour2}) && !alreadyDeleted.contains(new Node[]{value,neighbour2, node, neighbour})) {
 
                                 for (ArrayList<Node> neighors : allNeighbours) {
                                     if (neighors.get(0) == value) {
@@ -113,8 +113,8 @@ public class Main {
             }
         }
 
-        NewFrame frame = new NewFrame();
-        frame.drawFrame(allNeighbours);
+        //NewFrame frame = new NewFrame();
+        //frame.drawFrame(allNeighbours);
 
     }
 
@@ -133,6 +133,10 @@ public class Main {
             int[] coords = {randomX, randomY};
             allNodes[i] = new Node(coords); //Node is added to allNodes
         }
+
+        //write allNodes to a file to use a consistent data set
+        FileHandler.writeFromList("map.txt", allNodes, true);
+
 
         return allNodes;
     }
